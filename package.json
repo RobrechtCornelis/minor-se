@@ -1,0 +1,23 @@
+{
+  "name": "minor-se",
+  "version": "1.0.0",
+  "description": "lol project",
+  "main": "Program.js",
+  "dependencies": {
+    "typescript": "^3.8.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RobrechtCornelis/minor-se.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RobrechtCornelis/minor-se/issues"
+  },
+  "homepage": "https://github.com/RobrechtCornelis/minor-se#readme"
+}
