@@ -47,7 +47,8 @@ let id = function<a>() : Fun<a,a> { return Fun(x => x) }
 
 export interface CustomArray<a> {
     content: a[]
-    map: <b>(f: Fun<a,b>) => CustomArray<b> 
+	map: <b>(f: Fun<a,b>) => CustomArray<b> 
+	select: <k extends keyof a>(...keys : k[]) => CustomArray<a>
 }
 
 export const CustomArray = function<a>(array: a[]) : CustomArray<a>{
@@ -59,7 +60,16 @@ export const CustomArray = function<a>(array: a[]) : CustomArray<a>{
                 new_array[i] = f.f(array[i])
             }
             return CustomArray(new_array) 
-        } 
+		} ,
+		select: function<k extends keyof a>(this: CustomArray<a>, ...keys: k[]) : CustomArray<a> { 
+            let new_array : a[] = []       
+            this.content.forEach(element => {  
+                let new_element = {} as a; 
+                keys.forEach(key => new_element[key] = element[key])       
+                new_array.push(new_element)
+            } )     
+            return CustomArray(new_array)
+        }
     }
 }
 
