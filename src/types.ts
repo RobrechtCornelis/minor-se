@@ -64,62 +64,62 @@ export const CustomArray = function<a>(array: a[]) : CustomArray<a>{
 }
 
 
-	static IEnumerable<U> Map<T, U>(this IEnumerable<T> table, Func<T, U> transformer){
+	// static IEnumerable<U> Map<T, U>(this IEnumerable<T> table, Func<T, U> transformer){
 		
-		U[] new_result = new U[table.Count()];
-		for(int i = 0; i < table.Count(); i++){
+	// 	U[] new_result = new U[table.Count()];
+	// 	for(int i = 0; i < table.Count(); i++){
 			
-			new_result[i] = transformer(table.ElementAt(i));
-		}
-		return new_result;
-	}
+	// 		new_result[i] = transformer(table.ElementAt(i));
+	// 	}
+	// 	return new_result;
+	// }
 
-	static IEnumerable<T> Filter<T>(this IEnumerable<T> table, Func<T, bool> condition){
+	// static IEnumerable<T> Filter<T>(this IEnumerable<T> table, Func<T, bool> condition){
 		
-		List<T> new_result = new List<T>();
-		for(int i = 0;  i < table.Count(); i++){
+	// 	List<T> new_result = new List<T>();
+	// 	for(int i = 0;  i < table.Count(); i++){
 			
-			if(condition(table.elementAt(i)))
-			{
-				new_result.Add(table.elementAt(i))
-			}
-		}
-		return new_result;	
-	}
+	// 		if(condition(table.elementAt(i)))
+	// 		{
+	// 			new_result.Add(table.elementAt(i))
+	// 		}
+	// 	}
+	// 	return new_result;	
+	// }
 
-	static U Reduce<T, U>(this IEnumerable<T> table, U init,  Func<U, T, U> reducer){
+	// static U Reduce<T, U>(this IEnumerable<T> table, U init,  Func<U, T, U> reducer){
 		
-		U acc = init;
-		for(int i = 0; i < table.Count(), i++)
-		{
-			acc = reducer(acc, table.elementAt(i));
-		}
-		return acc;
-	}
+	// 	U acc = init;
+	// 	for(int i = 0; i < table.Count(), i++)
+	// 	{
+	// 		acc = reducer(acc, table.elementAt(i));
+	// 	}
+	// 	return acc;
+	// }
 
 
-	static IEnumerable<Tuple<T1, T2>> Join<T1, T2>(
-	IEnumerable<T1> left,
-	IEnumerable<T2> right,
-	Func<T1, T2, bool> condition)
-	{	
-		return left.Reduce<T1, List<Tuple<T1,T2>>>
-			(new List<Tuple<T1, T2>>(),
-			(joinedTable, leftrow) => {
+	// static IEnumerable<Tuple<T1, T2>> Join<T1, T2>(
+	// IEnumerable<T1> left,
+	// IEnumerable<T2> right,
+	// Func<T1, T2, bool> condition)
+	// {	
+	// 	return left.Reduce<T1, List<Tuple<T1,T2>>>
+	// 		(new List<Tuple<T1, T2>>(),
+	// 		(joinedTable, leftrow) => {
 				
-				var leftcombination = right.Reduce<T2, List<Tuple<T1, T2>>
-				(new List<Tuple<T1, T2>>(),
-					(rowcombinations, rightrow) => {
-						if(condition(leftrow, rightrow)){
-							rowcombinations.Add(new Tuple<T1,T2>(leftrow, rightrow))
-						}
-						return rowcombinations;
-					}
-				)
-				joinedTable.AddRange(leftcombination);
-				return joinedTable;		
-			};
-			);
+	// 			var leftcombination = right.Reduce<T2, List<Tuple<T1, T2>>
+	// 			(new List<Tuple<T1, T2>>(),
+	// 				(rowcombinations, rightrow) => {
+	// 					if(condition(leftrow, rightrow)){
+	// 						rowcombinations.Add(new Tuple<T1,T2>(leftrow, rightrow))
+	// 					}
+	// 					return rowcombinations;
+	// 				}
+	// 			)
+	// 			joinedTable.AddRange(leftcombination);
+	// 			return joinedTable;		
+	// 		};
+	// 		);
 
-	}
-}
+// 	}
+// }
