@@ -1,3 +1,4 @@
+import {Employee} from '../src/Program'
 
 export type Fun<a,b> = {
     f: (i:a) => b,
@@ -48,8 +49,11 @@ let id = function<a>() : Fun<a,a> { return Fun(x => x) }
 export interface CustomArray<a> {
     content: a[]
 	map: <b>(f: Fun<a,b>) => CustomArray<b> 
-	select: <k extends keyof a>(...keys : k[]) => CustomArray<a>
+	select: <k extends keyof a>(...keys : k[]) =>  CustomArray<Subset<a, k>>
 }
+// CustomArray<[x extends keyof Extract<keyof a, k> : a[x]]>
+type ConvertTo<T, v> = Pick<T, {[k in keyof T] : v extends k ? k: never }[keyof T] >
+type Subset<T, v> = ConvertTo<T, v >
 
 export const CustomArray = function<a>(array: a[]) : CustomArray<a>{
     return {
@@ -60,9 +64,9 @@ export const CustomArray = function<a>(array: a[]) : CustomArray<a>{
                 new_array[i] = f.f(array[i])
             }
             return CustomArray(new_array) 
-		} ,
-		select: function<k extends keyof a>(this: CustomArray<a>, ...keys: k[]) : CustomArray<a> { 
-            let new_array : a[] = []       
+		} ,  //Extract<keyof a, k>
+		select: function<k extends keyof a>(this: CustomArray<a>, ...keys: k[]) : CustomArray<Subset<a, k>> { 
+            let new_array : Subset<a, k>[] = []       
             this.content.forEach(element => {  
                 let new_element = {} as a; 
                 keys.forEach(key => new_element[key] = element[key])       
@@ -72,6 +76,70 @@ export const CustomArray = function<a>(array: a[]) : CustomArray<a>{
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 	// static IEnumerable<U> Map<T, U>(this IEnumerable<T> table, Func<T, U> transformer){
