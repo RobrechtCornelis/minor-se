@@ -47,7 +47,7 @@ export let Fun = function<a,b>(f: (_:a) => b) : Fun<a,b> {
 
 let id = function<a>() : Fun<a,a> { return Fun(x => x) }
 
-export interface CustomArray<a> {
+export type CustomArray<a> = {
     content: a[]
 	map: <b>(f: Fun<a,b>) => CustomArray<b> 
 	select: <k extends keyof a>(...keys : k[]) =>  CustomArray<Subset<a, k>>
