@@ -1,8 +1,8 @@
-import { Student } from "./models/Student";
-import { Teacher } from "./models/Teacher";
-import { Course } from "./models/Course";
-import { Grade } from "./models/Grade";
-import { CustomArray, Fun } from "./types/Type";
+import { Student } from "./models/Student.js";
+import { Teacher } from "./models/Teacher.js";
+import { Course } from "./models/Course.js";
+import { Grade } from "./models/Grade.js";
+import { CustomArray, Fun } from "./types/Type.js";
 
 const Program = () => {
 
