@@ -1,4 +1,9 @@
+import { Course } from "./Course";
+import { Student } from "./Student";
+
 export interface Grade{
-    Grade:number
-    CourseId:number    
+
+    studentId: Student["id"]
+    courseId: Course["id"]   
+    grade:number 
 }
