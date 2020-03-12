@@ -1,20 +1,77 @@
+import {Student} from "./models/Student.js";
+import { CustomArray, Fun } from "./types/Type.js";
 
-import { incr } from "./methods"
-import { CustomArray, Fun } from "./types";
+let StudentOne: Student = ({
+    Name: 'Ramiro',    
+    Surname: 'Delgado',
+    Grades: [{
+        Grade: 3,
+        CourseId: 5
+    },
+    {
+        Grade: 1,
+        CourseId: 2
+    }
+    ],
+});
 
+
+type car = {Merk:string, Price:number}
+type gps = {Merk:string,Price:number}
+type carGps = car & gps
+type carToSellWithGps = {kind: "carToSellWithGps"} & carGps
+type carToSellWithOutGps = {kind: "carToSellWithOutGps"}
+
+
+type Person = {Name:string, Surname: string, age: number}
+
+type ConvertTO<T,v> = Pick<T,{[k in keyof T] : v extends k ? k : never }[keyof T]>
+
+type x = ConvertTO<Person,"asdas">
+
+
+type onlyNumber<T> = {
+    [k in keyof T] : T[k] extends number ? k : never}
+type a = onlyNumber<Person>["Name"]
+
+type Html = {}
+type Func<a,b> = (_:a) => b
+type customPages =
+{
+    home : {
+        name : string,
+        value: number,
+        text: string
+    },
+    aboutus: {
+        name: string,
+        text: string
+    }
+}
+type PagesWithValue<Pages,v> = Pick<Pages, { [p in keyof Pages]: v extends keyof Pages[p] ? p : never }[keyof Pages]>
+
+type YYY = PagesWithValue<customPages,"value">
+type Renderer<Page> = Func<Page, Html>
+type Renderers<Pages> = {
+    [p in keyof PagesWithValue<Pages,"value">] : Renderer<Pages[p]>
+}
+type xxx = Renderers<customPages>
 
 const Program = () => {
 
     var db : Database = initializeDatabase()
 
-    const incremented_array : CustomArray<number> =  CustomArray([1,2,3,4,5,6]).map(incr.then(incr))
-    const employee_names : CustomArray<string> =  CustomArray(db.Employees).map(Fun(employee => employee.name) )
+    //Misschien beter om de type van de tabellen meteen CustomArray te maken, dan schrijf je alleen: db.Employees of [1,2,3,4,5]
+    //const incremented_array : CustomArray<number> =  CustomArray([1,2,3,4,5,6]).map(incr.then(incr))
+    const employee_names : CustomArray<string> =  db.Employees.map(Fun(employee => employee.name)) 
+    const selection_salary_name  = db.Employees.select("id", "name")
 
-    console.log(incremented_array.content)
+    //console.log(incremented_array.content)
     console.log(employee_names.content)
+    console.log(selection_salary_name.content)
     /// Do something with database....
     //  Pak een tabel bijv. : db.Employees... blabla...
-}
+ }
 
 const initializeDatabase = function() : Database {
     let l_employees : Employee[] =  [
@@ -25,10 +82,10 @@ const initializeDatabase = function() : Database {
         {id: 1, title: "Burgers bakken", employeeId: 2}, 
         {id: 2, title: "Nieuwe Iphone namen verzinnen", employeeId: 3}, 
         {id: 3, title: "Plantdeskundige bij Sweco", employeeId: 1}]
-    return {Employees: l_employees, Tasks: l_tasks }
-}
+    return {Employees: CustomArray(l_employees), Tasks: CustomArray(l_tasks) }
+ }
 
-interface Employee {
+ interface Employee {
     id: number,
     name: string,
     email: string,
@@ -42,8 +99,8 @@ interface Task {
 }
 
 interface Database {
-    Employees: Employee[]
-    Tasks: Task[]
+    Employees: CustomArray<Employee>
+    Tasks: CustomArray<Task>
 }
 
 Program()
