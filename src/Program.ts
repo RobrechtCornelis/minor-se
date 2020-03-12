@@ -1,5 +1,5 @@
-import {Student} from "./models/Student";
-import { CustomArray, Fun } from "./types/Type";
+import {Student} from "./models/Student.js";
+import { CustomArray, Fun } from "./types/Type.js";
 
 let StudentOne: Student = ({
     Name: 'Ramiro',    
@@ -103,4 +103,4 @@ interface Database {
     Tasks: CustomArray<Task>
 }
 
-//  Program()
+Program()

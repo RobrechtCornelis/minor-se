@@ -1,16 +1,21 @@
   
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "ES2017",
     "outDir": "./dist/",
+    "module": "ESNext",
     "rootDir": "./src/",
     "strict": true,
     "baseUrl": ".",
-    "esModuleInterop": true,    
-    "lib": [
-      "esnext",
-      "dom"
-    ]
-    
+    "esModuleInterop": true, 
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "strictBindCallApply": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "alwaysStrict": true,
+    "declaration": true     
   }
 }
