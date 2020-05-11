@@ -40,15 +40,27 @@ const Program = () => {
 
     //Misschien beter om de type van de tabellen meteen List te maken, dan schrijf je alleen: db.Employees of [1,2,3,4,5]
     const incr = Fun<number, number>(x => x + 1)
+    const isEven = Fun<number, boolean>(x => x % 2 == 0)
+    const isUneven = Fun<number, boolean>(x => x % 2 == 1)
+    const negate = Fun<boolean, boolean>(x => !x)
     const incremented_array : List<number> =  List([1,2,3,4,5,6]).map(incr.then(incr))
+    const incremented_uneven_array : List<number> =  List([1,2,3,4,5,6]).map(incr.then(incr)).where(isUneven)
+    const double_where_incr : List<number> = 
+     List([1,2,3,4,5,6]).map(incr.then(incr)).where(isUneven).map(incr).where(isEven)
     const student_names: List<string> = db.Students.map(Fun(student => student.name))
-    const selection_surnames_name = db.Students.select("surname", "name")
+    const filtered_student_names: List<string> = 
+      db.Students.map(Fun(student => student.name)).where(Fun(name => name == "Robrecht" || name == "Nofit"))
+    const selection_surnames_name =
+     db.Students.select("surname", "name")
     let lol = db.Students.select("grades")
 
-    console.log(incremented_array.content)
-    console.log(student_names.content)
+    //console.log(incremented_array.content)
+    //console.log(incremented_uneven_array.content)
+    //console.log(student_names.content)
+    //console.log(filtered_student_names.content)
+    //console.log(double_where_incr.content)
     console.log(selection_surnames_name.content)
-    console.log(lol.content)
+    //console.log(lol.content)
     /// Do something with database....
     //  Pak een tabel bijv. : db.Employees... blabla...
 }

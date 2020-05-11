@@ -31,7 +31,8 @@ export let Fun = function<a,b>(f: (_:a) => b) : Fun<a,b> {
 export type List<a> = {
     content: a[]
 	map: <b>(f: Fun<a,b>) => List<b> 
-	select: <k extends keyof a>(...keys : k[]) =>  List<Subset<a, k>>
+    select: <k extends keyof a>(...keys : k[]) =>  List<Subset<a, k>>
+    where: (this: List<a>, predicate: Fun<a, boolean>) => List<a>
 }
 // List<[x extends keyof Extract<keyof a, k> : a[x]]>
 type ConvertTo<T, v> = Pick<T, {[k in keyof T] : v extends k ? k: never }[keyof T] >
@@ -41,6 +42,7 @@ export const List = function<a>(array: a[]) : List<a>{
     return {
         content: array,
         map: function<b>(f: Fun<a,b>) : List<b>{
+
             let new_array : b[] = []
             for(var i = 0; i < array.length; i++) {
                 new_array[i] = f.f(array[i])
@@ -55,6 +57,15 @@ export const List = function<a>(array: a[]) : List<a>{
                 new_array.push(new_element)
             } )     
             return List(new_array)
+        },
+        where: function(this: List<a>, predicate: Fun<a, boolean>) : List<a> {
+            let filtered_list: a[] = []
+            this.content.forEach(element => {
+                if (predicate.f(element)) {
+                    filtered_list.push(element)
+                }
+            })
+            return List(filtered_list)
         }
     }
 }

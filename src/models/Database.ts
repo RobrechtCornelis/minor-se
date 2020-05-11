@@ -1,8 +1,9 @@
-import { Student } from "src/models/Student";
-import { Teacher } from "src/models/Teacher";
-import { Course } from "src/models/Course";
-import { Grade } from "src/models/Grade";
-import { List } from "src/types/Type"
+import { Student } from "./Student";
+import { Teacher } from "./Teacher";
+import { Course } from "./Course";
+import { Grade } from "./Grade";
+import { List } from "../types/Type";
+
 
 export interface Database {
     Students: List<Student>
