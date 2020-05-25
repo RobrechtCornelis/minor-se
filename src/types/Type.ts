@@ -1,27 +1,10 @@
+let repeat =  <a>(f: Fun<a,a>, n:number) : Fun<a,a> =>
+    n <=0 ? id<a>() : f.then(repeat(f, n - 1))  
 
-let repeat =  function<a>(f: Fun<a,a>, n:number) : Fun<a,a> {
-    if(n <= 0){
-        return id()
-    }
-    else{             
-        return f.then(repeat(f, n - 1))
-    }
-}
+let repeatUntil =  <a>(f: Fun<a,a>, predicate: Fun<a, boolean>) : Fun<a, a> =>
+    Fun((x:a) => predicate.f(x) ? id<a>().f(x) : f.then(repeatUntil(f, predicate)).f(x))
 
-let repeatUntil =  function<a>(f: Fun<a,a>, predicate: Fun<a, boolean>) : Fun<a, a> {
-    let g =
-    (x:a) => {
-        if(predicate.f(x)){
-            return id<a>().f(x)       
-        }
-        else{
-            return f.then(repeatUntil(f, predicate)).f(x)
-        }
-    }
-    return Fun(g)
-}
-
-
+let id = <a>() : Fun<a,a> => id<a>()
 
 export type Fun<a,b> = {
     f: (i:a) => b,
@@ -41,39 +24,48 @@ export let Fun = function<a,b>(f: (_:a) => b) : Fun<a,b> {
         },
         repeatUntil: function(this: Fun<a, a>): Fun<Fun<a, boolean>, Fun<a, a>> {
             return Fun(predicate => repeatUntil(this, predicate))
-          }
+        }
     }
 }
 
-let id = function<a>() : Fun<a,a> { return Fun(x => x) }
-
-export type CustomArray<a> = {
+export type List<a> = {
     content: a[]
-	map: <b>(f: Fun<a,b>) => CustomArray<b> 
-	select: <k extends keyof a>(...keys : k[]) =>  CustomArray<Subset<a, k>>
+	map: <b>(f: Fun<a,b>) => List<b> 
+    select: <k extends keyof a>(...keys : k[]) =>  List<Subset<a, k>>
+    where: (this: List<a>, predicate: Fun<a, boolean>) => List<a>
 }
-// CustomArray<[x extends keyof Extract<keyof a, k> : a[x]]>
+// List<[x extends keyof Extract<keyof a, k> : a[x]]>
 type ConvertTo<T, v> = Pick<T, {[k in keyof T] : v extends k ? k: never }[keyof T] >
 type Subset<T, v> = ConvertTo<T, v >
 
-export const CustomArray = function<a>(array: a[]) : CustomArray<a>{
+export const List = function<a>(array: a[]) : List<a>{
     return {
         content: array,
-        map: function<b>(f: Fun<a,b>) : CustomArray<b>{
+        map: function<b>(f: Fun<a,b>) : List<b>{
+
             let new_array : b[] = []
             for(var i = 0; i < array.length; i++) {
                 new_array[i] = f.f(array[i])
             }
-            return CustomArray(new_array) 
+            return List(new_array) 
 		} ,  //Extract<keyof a, k>
-		select: function<k extends keyof a>(this: CustomArray<a>, ...keys: k[]) : CustomArray<Subset<a, k>> { 
+		select: function<k extends keyof a>(this: List<a>, ...keys: k[]) : List<Subset<a, k>> { 
             let new_array : Subset<a, k>[] = []       
             this.content.forEach(element => {  
                 let new_element = {} as a; 
                 keys.forEach(key => new_element[key] = element[key])       
                 new_array.push(new_element)
             } )     
-            return CustomArray(new_array)
+            return List(new_array)
+        },
+        where: function(this: List<a>, predicate: Fun<a, boolean>) : List<a> {
+            let filtered_list: a[] = []
+            this.content.forEach(element => {
+                if (predicate.f(element)) {
+                    filtered_list.push(element)
+                }
+            })
+            return List(filtered_list)
         }
     }
 }
