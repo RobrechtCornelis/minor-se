@@ -1,3 +1,5 @@
+import { bubbleSort } from "./BubbleSort"
+
 let repeat =  <a>(f: Fun<a,a>, n:number) : Fun<a,a> =>
     n <=0 ? id<a>() : f.then(repeat(f, n - 1))  
 
@@ -28,12 +30,26 @@ export let Fun = function<a,b>(f: (_:a) => b) : Fun<a,b> {
     }
 }
 
+
 export type List<a> = {
     content: a[]
 	map: <b>(f: Fun<a,b>) => List<b> 
     select: <k extends keyof a>(...keys : k[]) =>  List<Subset<a, k>>
     where: (this: List<a>, predicate: Fun<a, boolean>) => List<a>
+    orderby: (attribute: NumberStringPropertyNames<a>, order?: keyof Comperator<a>) => List<a>  
 }
+
+export type Comperator<T> = {
+    ASC: Fun<T, boolean>
+    DESC: Fun<T, boolean>
+}
+
+export const Comperator = <T>(comparer: T): Comperator<T> => ({
+    ASC: Fun<T, boolean>(x => x <= comparer),
+    DESC: Fun<T, boolean>(x => comparer <= x)
+})
+
+export type stringAndNumber = number|string
 // List<[x extends keyof Extract<keyof a, k> : a[x]]>
 type ConvertTo<T, v> = Pick<T, {[k in keyof T] : v extends k ? k: never }[keyof T] >
 type Subset<T, v> = ConvertTo<T, v >
@@ -66,6 +82,14 @@ export const List = function<a>(array: a[]) : List<a>{
                 }
             })
             return List(filtered_list)
-        }
+        },
+        orderby: function (this: List<a>, attribute: NumberStringPropertyNames<a>, order: keyof Comperator<a> = "ASC"): List<a> {
+            var sortedList = bubbleSort(this, attribute)
+            if(order == 'ASC') 
+                return sortedList
+            return List(sortedList.content.reverse())
+        },
     }
 }
+
+type NumberStringPropertyNames<T> = { [K in keyof T]: T[K] extends number |string ? K : never }[keyof T];

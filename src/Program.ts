@@ -4,6 +4,7 @@ import { Course } from "./models/Course";
 import { Grade } from "./models/Grade";
 import { Database } from "./models/Database"
 import { List, Fun } from "./types/Type";
+import { bubbleSort } from "./types/BubbleSort";
 
 const Program = () => {
     const initializeDatabase = function() : Database {
@@ -18,9 +19,9 @@ const Program = () => {
         ]
 
         let l_students: Student[] = [
-            { id: 1, name: "Robrecht", surname: "Cornelis", grades: [l_grades[1], l_grades[2]]},
+            { id: 3, name: "Robrecht", surname: "Cornelis", grades: [l_grades[1], l_grades[2]]},
             { id: 2, name: "Nofit", surname: "Kartoredjo", grades: [l_grades[3], l_grades[4], l_grades[6]]},
-            { id: 3, name: "Ramiro", surname: "Delgado", grades: [l_grades[0], l_grades[5]]}
+            { id: 1, name: "Ramiro", surname: "Delgado", grades: [l_grades[0], l_grades[5]]}
         ]
 
         let l_courses: Course[] = [
@@ -51,7 +52,7 @@ const Program = () => {
     const filtered_student_names: List<string> = 
       db.Students.map(Fun(student => student.name)).where(Fun(name => name == "Robrecht" || name == "Nofit"))
     const selection_surnames_name =
-     db.Students.select("surname", "name")
+     db.Students.select("surname", "name", "grades")
     let lol = db.Students.select("grades")
 
     //console.log(incremented_array.content)
@@ -59,10 +60,12 @@ const Program = () => {
     //console.log(student_names.content)
     //console.log(filtered_student_names.content)
     //console.log(double_where_incr.content)
-    console.log(selection_surnames_name.content)
+    //console.log(selection_surnames_name.content)
     //console.log(lol.content)
     /// Do something with database....
     //  Pak een tabel bijv. : db.Employees... blabla...
+    //console.log(bubbleSort<Student>(db.Students, "surname", "ASC").content)
+    console.log(db.Students.select("name","grades","id").orderby("name", "ASC").content)
 }
 
  Program()
