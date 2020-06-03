@@ -84,10 +84,10 @@ export const List = function<a>(array: a[]) : List<a>{
             return List(filtered_list)
         },
         orderby: function (this: List<a>, attribute: NumberStringPropertyNames<a>, order: keyof Comperator<a> = "ASC"): List<a> {
-            var sortedList = bubbleSort(this, attribute)
+            var sortedList = bubbleSort(this.content, attribute)
             if(order == 'ASC') 
-                return sortedList
-            return List(sortedList.content.reverse())
+                return List(sortedList)
+            return List(sortedList.reverse())
         },
     }
 }

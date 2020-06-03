@@ -65,7 +65,7 @@ const Program = () => {
     /// Do something with database....
     //  Pak een tabel bijv. : db.Employees... blabla...
     //console.log(bubbleSort<Student>(db.Students, "surname", "ASC").content)
-    console.log(db.Students.select("name","grades","id").orderby("name", "ASC").content)
+    console.log(db.Students.select("id","grades", "name").orderby("name").content)
 }
 
  Program()
