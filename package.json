@@ -4,6 +4,7 @@
   "description": "lol project",
   "main": "Program.js",
   "dependencies": {
+    "immutable": "^4.0.0-rc.12",
     "typescript": "^3.9.3"
   },
   "devDependencies": {
