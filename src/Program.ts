@@ -39,7 +39,7 @@ const Program = () => {
 
     var db: Database = initializeDatabase()
 
-    console.log( Query(db.Students).select("id").select("surname", "grades").toArray()  )
+    console.log( Query(db.Students).orderby("surname", "ASC").select("id").select("surname", "grades").toArray()  )
 
 }
 
