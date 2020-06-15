@@ -69,8 +69,10 @@ export type Query<T, C> = {   // Bij de functie zijn T en C in het begin hetzelf
     // bij where method worden C en T niet gemanipuleerd, maar slechts doorgegeven. Where' verandert de template T, omdat hier RESULTATEN worden gefilterd en niet ATTRIBUTEN.
     orderby: (attribute: NumberStringPropertyNames<T>, order?: keyof Comperator<T>) => Query<T, C>
     
-    include: (attribute: ArrayPropertyNames<T>) => Query<T,C>  
+    include: <k extends ArrayPropertyNames<C>>(attribute: k, f: (q2: Query<ArrayExtractor<C, k>, ArrayExtractor<C, k>>) => Query<ArrayExtractor<C, k>, ArrayExtractor<C, k>>) => Query<T,Subset<C,k>>  
 }
+
+type ArrayExtractor<C, k extends keyof C> =  {[K in k] : C[K] extends (infer U)[] ? U : never }[k]
 
 // Volgens Mohammed's suggestie: Subset geeft een set terug van alle attributen die je NIET hebt gekozen, dit is het resultaat van Omit
 // Zo krijg je bij elke nieuwe select een optie van attributen die je nog niet eerder hebt geselecteerd.
@@ -114,15 +116,16 @@ export const Query = function<T>(array: T[]) : Query<T, T>{ // new Query<Student
                 return {...this, template: sortedQuery}   // Gebruik niet de Query-functie zelf om een nieuwe array terug te geven, gebruik rest parameter in object en pas een property aan
             return {...this, template: sortedQuery.reverse()} 
         },
-        include: function<C>(this: Query<T, C>, attribute: ArrayPropertyNames<T>): Query<T, C> {
+        include: function<k extends ArrayPropertyNames<T>>(this: Query<T, T>, attribute: k, f: (q2: Query<ArrayExtractor<T, k>, ArrayExtractor<T, k>>) => Query<ArrayExtractor<T, k>, ArrayExtractor<T, k>>) : Query<T, T> {
         //     // attribute = 'grades'
         //     // [Grade, Grade, Grade]
             let t2 = Query(this.template).select(attribute)
-            console.log(t2)
+            // this.current = this.current.concat(t2.current)
+            //console.log(t2)
             //this.current.forEach(student => Query(this.template).select(""))
-            t2.current.forEach(grade => console.log(grade))
+            //t2.current.forEach(grade => console.log(grade))
 
-            return {...this, current: t2.current}
+            return {...this, current: this.current.concat(t2.current)}
         },
     }
 
