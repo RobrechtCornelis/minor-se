@@ -65,11 +65,11 @@ export type Query<T, C> = {   // Bij de functie zijn T en C in het begin hetzelf
     // bij select method wordt C gemanipuleerd, en draagt informatie over gefilterde ATTRIBUTEN (Subset) die zijn gefilterd door de select method.
     select: <k extends keyof C>(...keys : k[]) =>  Query<T, Subset<C,k>>    
     // bij where method verandert de inhoud van template T[], maar T zelf wordt niet gemanipuleerd, omdat hier RESULTATEN worden gefilterd, maar de structuur van T blijft hetzelfde.
-    where: <k extends keyof T>(key: k, predicate: Fun<T[k], boolean>) => Query<T, C> 
+    where: <k extends keyof T>(key: k, predicate: (_:T[k] ) => boolean) => Query<T, C> 
     // bij where method worden C en T niet gemanipuleerd, maar slechts doorgegeven. Where' verandert de template T, omdat hier RESULTATEN worden gefilterd en niet ATTRIBUTEN.
     orderby: (attribute: NumberStringPropertyNames<T>, order?: keyof Comperator<T>) => Query<T, C>
     
-    include: <k extends ArrayPropertyNames<C>>(attribute: k, f: (q2: Query<ArrayExtractor<C, k>, ArrayExtractor<C, k>>) => Query<ArrayExtractor<C, k>, ArrayExtractor<C, k>>) => Query<T,Subset<C,k>>  
+    include: <k extends ArrayPropertyNames<C>>(attribute: k, f: (q2: Query<ArrayExtractor<C, k>, ArrayExtractor<C, k>>) => Query<ArrayExtractor<C, k>, any>) => Query<T,Subset<C,k>>  
 }
 
 type ArrayExtractor<C, k extends keyof C> =  {[K in k] : C[K] extends (infer U)[] ? U : never }[k]
@@ -101,10 +101,10 @@ export const Query = function<T>(array: T[]) : Query<T, T>{ // new Query<Student
              keys.forEach(key => this.current.push(key))
             return this
         },
-        where: function <k extends keyof T>(this: Query<T,T>, key: k, predicate: Fun<T[k], boolean>) : Query<T,T> {
+        where: function <k extends keyof T>(this: Query<T,T>, key: k, predicate:(_:T[k] ) => boolean) : Query<T,T> {
             let filtered_list: T[] = []
             this.template.forEach(element => {
-                if (predicate.f(element[key])) {
+                if (predicate(element[key])) {
                     filtered_list.push(element)
                 }
             })
@@ -116,10 +116,12 @@ export const Query = function<T>(array: T[]) : Query<T, T>{ // new Query<Student
                 return {...this, template: sortedQuery}   // Gebruik niet de Query-functie zelf om een nieuwe array terug te geven, gebruik rest parameter in object en pas een property aan
             return {...this, template: sortedQuery.reverse()} 
         },
-        include: function<k extends ArrayPropertyNames<T>>(this: Query<T, T>, attribute: k, f: (q2: Query<ArrayExtractor<T, k>, ArrayExtractor<T, k>>) => Query<ArrayExtractor<T, k>, ArrayExtractor<T, k>>) : Query<T, T> {
+        include: function<k extends ArrayPropertyNames<T>>(this: Query<T, T>, attribute: k, f: (q2: Query<ArrayExtractor<T, k>, ArrayExtractor<T, k>>) => Query<ArrayExtractor<T, k>, any>) : Query<T, T> {
         //     // attribute = 'grades'
         //     // [Grade, Grade, Grade]
-            let t2 = Query(this.template).select(attribute)
+            let nestedList: ArrayExtractor<T,k>[] = []
+            this.template.forEach(element => nestedList.push(element[attribute]))
+            let t2 = Query(this.template)
             // this.current = this.current.concat(t2.current)
             //console.log(t2)
             //this.current.forEach(student => Query(this.template).select(""))
