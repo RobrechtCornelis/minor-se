@@ -4,7 +4,7 @@ import { Course } from "./models/Course";
 import { Grade } from "./models/Grade";
 import { Database } from "./models/Database"
 import { Query } from "./types/Type";
-import { List } from "immutable";
+//import { List } from "immutable";
 
 const Program = () => {
     const initializeDatabase = function() : Database {
