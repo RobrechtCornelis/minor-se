@@ -4,6 +4,7 @@ import { Course } from "./models/Course";
 import { Grade } from "./models/Grade";
 import { Database } from "./models/Database"
 import { Query } from "./types/Type";
+import { Fun } from "./types/Type";
 //import { List } from "immutable";
 
 const Program = () => {
@@ -39,7 +40,15 @@ const Program = () => {
 
     var db: Database = initializeDatabase()
 
-    console.log( Query(db.Students).orderby("surname", "ASC").select("id").select("surname", "grades").toArray()  )
+    //console.log(Query(db.Students).toArray())
+    //console.log(Query(db.Grades).toArray())
+
+    let studs = Query(db.Students).select("name", "surname").include("grades").toArray()
+    //let grades = Query(db.Grades).select("grade").toArray()
+   
+    //let res = studs.concat({grades})
+
+    //console.log(studs)
 
 }
  Program()

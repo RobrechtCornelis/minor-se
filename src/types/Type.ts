@@ -8,6 +8,9 @@ let repeatUntil =  <a>(f: Fun<a,a>, predicate: Fun<a, boolean>) : Fun<a, a> =>
 
 let id = <a>() : Fun<a,a> => Fun(x=> x)
 
+type NumberStringPropertyNames<T> = { [K in keyof T]: T[K] extends number |string ? K : never }[keyof T];
+type ArrayPropertyNames<T> = { [K in keyof T]: T[K] extends any[] ? K : never }[keyof T]; // "grades" = K  Grade[]  Student > grades > Grade[]  Student[key] = value type
+
 export type Fun<a,b> = {
     f: (i:a) => b,
     then: <c>(g: Fun<b, c>) => Fun<a, c> ,
@@ -29,6 +32,18 @@ export let Fun = function<a,b>(f: (_:a) => b) : Fun<a,b> {
         }
     }
 }
+
+export type Comperator<T> = {
+    ASC: Fun<T, boolean>
+    DESC: Fun<T, boolean>
+}
+
+export const Comperator = <T>(comparer: T): Comperator<T> => ({
+    ASC: Fun<T, boolean>(x => x <= comparer),
+    DESC: Fun<T, boolean>(x => comparer <= x)
+})
+
+export type stringAndNumber = number|string
 
 
 // Suggesties van Mohamed (onderstaande 4 regels)
@@ -52,8 +67,9 @@ export type Query<T, C> = {   // Bij de functie zijn T en C in het begin hetzelf
     // bij where method verandert de inhoud van template T[], maar T zelf wordt niet gemanipuleerd, omdat hier RESULTATEN worden gefilterd, maar de structuur van T blijft hetzelfde.
     where: <k extends keyof T>(key: k, predicate: Fun<T[k], boolean>) => Query<T, C> 
     // bij where method worden C en T niet gemanipuleerd, maar slechts doorgegeven. Where' verandert de template T, omdat hier RESULTATEN worden gefilterd en niet ATTRIBUTEN.
-    orderby: (attribute: NumberStringPropertyNames<T>, order?: keyof Comperator<T>) => Query<T, C>  
-    // include: (attribute: ArrayPropertyNames<T>) => Query<T,C>  
+    orderby: (attribute: NumberStringPropertyNames<T>, order?: keyof Comperator<T>) => Query<T, C>
+    
+    include: (attribute: ArrayPropertyNames<T>) => Query<T,C>  
 }
 
 // Volgens Mohammed's suggestie: Subset geeft een set terug van alle attributen die je NIET hebt gekozen, dit is het resultaat van Omit
@@ -98,26 +114,16 @@ export const Query = function<T>(array: T[]) : Query<T, T>{ // new Query<Student
                 return {...this, template: sortedQuery}   // Gebruik niet de Query-functie zelf om een nieuwe array terug te geven, gebruik rest parameter in object en pas een property aan
             return {...this, template: sortedQuery.reverse()} 
         },
-        // include: function<C>(this: Query<T, C>, attribute: ArrayPropertyNames<T>): Query<T, C> {
+        include: function<C>(this: Query<T, C>, attribute: ArrayPropertyNames<T>): Query<T, C> {
         //     // attribute = 'grades'
         //     // [Grade, Grade, Grade]
-        //     this.content.forEach(student => console.log(student))  // not finish
-        //     return Query(filtered_list, {})
-        // },
+            let t2 = Query(this.template).select(attribute)
+            console.log(t2)
+            //this.current.forEach(student => Query(this.template).select(""))
+            t2.current.forEach(grade => console.log(grade))
+
+            return {...this, current: t2.current}
+        },
     }
+
 }
-
-export type Comperator<T> = {
-    ASC: Fun<T, boolean>
-    DESC: Fun<T, boolean>
-}
-
-export const Comperator = <T>(comparer: T): Comperator<T> => ({
-    ASC: Fun<T, boolean>(x => x <= comparer),
-    DESC: Fun<T, boolean>(x => comparer <= x)
-})
-
-export type stringAndNumber = number|string
-
-type NumberStringPropertyNames<T> = { [K in keyof T]: T[K] extends number |string ? K : never }[keyof T];
-type ArrayPropertyNames<T> = { [K in keyof T]: T[K] extends any[] ? K : never }[keyof T]; // "grades" = K  Grade[]  Student > grades > Grade[]  Student[key] = value type
