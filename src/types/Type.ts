@@ -99,6 +99,7 @@ export const Query = function<T>(array: T[]) : Query<T, T>{ // new Query<Student
         // en dus een steeds minder keuzes aan attributen om uit te kiezen
 		select: function<k extends keyof T>(this: Query<T,T>, ...keys: k[] ) : Query<T, Subset<T,k> > {  
              keys.forEach(key => this.current.push(key))
+             //Nog implementeren: als key al bestaat dan niet meer toevoegen.
             return this
         },
         where: function <k extends keyof T>(this: Query<T,T>, key: k, predicate:(_:T[k] ) => boolean) : Query<T,T> {
@@ -120,14 +121,19 @@ export const Query = function<T>(array: T[]) : Query<T, T>{ // new Query<Student
         //     // attribute = 'grades'
         //     // [Grade, Grade, Grade]
             let nestedList: ArrayExtractor<T,k>[] = []
-            this.template.forEach(element => nestedList.push(element[attribute]))
-            let t2 = Query(this.template)
+            this.template.forEach(element => {
+                var temp: ArrayExtractor<T,k> = element[attribute] as ArrayExtractor<T,k>
+                nestedList.push(temp)})
+            //console.log(nestedList)
+
+            let t2 = f(Query<ArrayExtractor<T,k>>(nestedList))
             // this.current = this.current.concat(t2.current)
-            //console.log(t2)
+            console.log(t2)
             //this.current.forEach(student => Query(this.template).select(""))
             //t2.current.forEach(grade => console.log(grade))
 
-            return {...this, current: this.current.concat(t2.current)}
+            // return {...this, current: this.current.concat(t2.current)}
+            return this
         },
     }
 
