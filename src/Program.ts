@@ -43,10 +43,12 @@ const Program = () => {
     //console.log(Query(db.Students).toArray())
     //console.log(Query(db.Grades).toArray())
 
-    let studs = Query(db.Students).select("id").where("name", name => name != "Nofit").include("grades", q => q.select("courseId").where("courseId", n => n == 1)).toArray()
+    let studs = Query(db.Students).select("id", "name").where("name", name => name != "Nofit").include("grades", q => q.select("courseId", "grade")).toArray()
+    //
     //console.log(studs)
-    // studs.forEach(element => console.log(element))
+studs.forEach(element => console.log(element))
     
+  //  console.log(studs)
     // let res = studs[0]
     //console.log(res)
     //let grades = Query(db.Grades).select("grade").toArray()
