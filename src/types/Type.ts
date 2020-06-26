@@ -1,4 +1,4 @@
-import { bubbleSort } from "./BubbleSort"
+import { bubbleSort } from "./BubbleSort.js"
 
 let repeat =  <a>(f: Fun<a,a>, n:number) : Fun<a,a> =>
     n <=0 ? id<a>() : f.then(repeat(f, n - 1))  
@@ -53,8 +53,42 @@ export type Query<T, C> = {   // Bij de functie zijn T en C in het begin hetzelf
     where: <k extends keyof T>(key: k, predicate: Fun<T[k], boolean>) => Query<T, C> 
     // bij where method worden C en T niet gemanipuleerd, maar slechts doorgegeven. Where' verandert de template T, omdat hier RESULTATEN worden gefilterd en niet ATTRIBUTEN.
     orderby: (attribute: NumberStringPropertyNames<T>, order?: keyof Comperator<T>) => Query<T, C>  
-    // include: (attribute: ArrayPropertyNames<T>) => Query<T,C>  
+    //include: (attribute: ArrayPropertyNames<T>) => Query<T,C>  
+    // include: <k extends ArrayPropertyNames<T>,P extends keyof QueryType<T[k]>>(
+    //     entity: k,        
+    //     query: (_: Query<T[k],T[k]>) => Query<Omit<QueryType<T[k]>, P>, Pick<QueryType<T[k]>, P>>
+    //     ) => Query<T,T>
+    include: <K extends ArrayPropertyNames<T>, P extends keyof QueryType<T[K]>>(
+        record: K,
+        q: (_: Query<QueryType<T[K]>,QueryType<T[K]>>) => Query<QueryType<T[K]>, Pick<QueryType<T[K]>, P>>
+    ) =>
+    Query<T,T>
+     
 }
+
+//////
+
+export type Filter<T, Condition> = {
+    // Set all types that match the Condition to the value of the field (i.e. name: "name")
+    // Else set the type to never
+    [K in keyof T]: T[K] extends Condition ? K : never 
+}[keyof T] 
+
+export type QueryType<T> = T extends Array<infer U> ? U : never;
+
+// export const initialTable = <T>(data: Data<T, Unit>): initialTable<T> => ({
+//     data: data,
+
+//     Select: function <K extends keyof T>(this: initialTable<T>, ...properties: K[]): Table<Omit<T, K>, Pick<T, K>> {
+//         return Table(this.data.map(
+//             first => first.map(entry => omitMany(entry, properties)),
+//             second => merge_list_types(second.zip(this.data.First.map(entry => pickMany(entry, properties))))
+//         ))
+//     }
+// })
+
+
+///////
 
 // Volgens Mohammed's suggestie: Subset geeft een set terug van alle attributen die je NIET hebt gekozen, dit is het resultaat van Omit
 // Zo krijg je bij elke nieuwe select een optie van attributen die je nog niet eerder hebt geselecteerd.
@@ -98,6 +132,28 @@ export const Query = function<T>(array: T[]) : Query<T, T>{ // new Query<Student
                 return {...this, template: sortedQuery}   // Gebruik niet de Query-functie zelf om een nieuwe array terug te geven, gebruik rest parameter in object en pas een property aan
             return {...this, template: sortedQuery.reverse()} 
         },
+        include: function <K extends ArrayPropertyNames<T>, P extends keyof QueryType<T[K]>>(
+            record: K,
+            q: (_: Query<QueryType<T[K]>,QueryType<T[K]>>) => Query<QueryType<T[K]>, Pick<QueryType<T[K]>, P>>
+        ):
+            Query<T,T> {        
+                
+                this.template.map(element => console.log(element));
+                return null!
+                //return Query(this.template.map(
+                // first => first.map(entry => omitOne(entry, record)),
+                // second => merge_list_types(second.zip(this.data.First.map(entry =>
+                //     ({ [record]: q(createTable(entry[record] as any)).toList().reverse().toArray() })))) as any
+                
+            //));
+        },
+        // include: function <k extends ArrayPropertyNames<T>,P extends keyof QueryType<T[k]>>(
+        //     entity: k,            
+        //     query: (_: Query<T[k],T[k]>) => (Query<Omit<QueryType<T[k]>, P>, Pick<QueryType<T[k]>, P>>)
+        //     ): Query<T,T>{
+        //         console.log(this.template[0])
+        //         return null!;
+        //     }
         // include: function<C>(this: Query<T, C>, attribute: ArrayPropertyNames<T>): Query<T, C> {
         //     // attribute = 'grades'
         //     // [Grade, Grade, Grade]
@@ -106,6 +162,7 @@ export const Query = function<T>(array: T[]) : Query<T, T>{ // new Query<Student
         // },
     }
 }
+
 
 export type Comperator<T> = {
     ASC: Fun<T, boolean>
