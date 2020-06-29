@@ -1,4 +1,4 @@
-import { bubbleSort } from "./BubbleSort"
+import { bubbleSort } from "./BubbleSort.js"
 
 let repeat =  <a>(f: Fun<a,a>, n:number) : Fun<a,a> =>
     n <=0 ? id<a>() : f.then(repeat(f, n - 1))  
@@ -53,8 +53,31 @@ export type Query<T, C> = {   // Bij de functie zijn T en C in het begin hetzelf
     where: <k extends keyof T>(key: k, predicate: Fun<T[k], boolean>) => Query<T, C> 
     // bij where method worden C en T niet gemanipuleerd, maar slechts doorgegeven. Where' verandert de template T, omdat hier RESULTATEN worden gefilterd en niet ATTRIBUTEN.
     orderby: (attribute: NumberStringPropertyNames<T>, order?: keyof Comperator<T>) => Query<T, C>  
-    // include: (attribute: ArrayPropertyNames<T>) => Query<T,C>  
+    //include: (attribute: ArrayPropertyNames<T>) => Query<T,C>  
+    // include: <k extends ArrayPropertyNames<T>,P extends keyof QueryType<T[k]>>(
+    //     entity: k,        
+    //     query: (_: Query<T[k],T[k]>) => Query<Omit<QueryType<T[k]>, P>, Pick<QueryType<T[k]>, P>>
+    //     ) => Query<T,T>
+    include: <K extends ArrayPropertyNames<T> & keyof C, P extends keyof QueryType<T[K]>>(
+        record: K,
+        q: (_: Query<QueryType<T[K]>,QueryType<C[K]>>) => Query<QueryType<T[K]>, Pick<QueryType<T[K]>,P>>
+    ) =>
+    Query<T, Subset<T,K> >
+     
 }
+
+//////
+
+export type Filter<T, Condition> = {
+    // Set all types that match the Condition to the value of the field (i.e. name: "name")
+    // Else set the type to never
+    [K in keyof T]: T[K] extends Condition ? K : never 
+}[keyof T] 
+
+export type QueryType<T> = T extends Array<infer U> ? U : never;
+
+
+///////
 
 // Volgens Mohammed's suggestie: Subset geeft een set terug van alle attributen die je NIET hebt gekozen, dit is het resultaat van Omit
 // Zo krijg je bij elke nieuwe select een optie van attributen die je nog niet eerder hebt geselecteerd.
@@ -98,14 +121,23 @@ export const Query = function<T>(array: T[]) : Query<T, T>{ // new Query<Student
                 return {...this, template: sortedQuery}   // Gebruik niet de Query-functie zelf om een nieuwe array terug te geven, gebruik rest parameter in object en pas een property aan
             return {...this, template: sortedQuery.reverse()} 
         },
-        // include: function<C>(this: Query<T, C>, attribute: ArrayPropertyNames<T>): Query<T, C> {
-        //     // attribute = 'grades'
-        //     // [Grade, Grade, Grade]
-        //     this.content.forEach(student => console.log(student))  // not finish
-        //     return Query(filtered_list, {})
-        // },
+        include: function <K extends ArrayPropertyNames<T>, P extends keyof QueryType<T[K]>>(
+            record: K,
+            q: (_: Query<QueryType<T[K]>,QueryType<T[K]>>) => Query<QueryType<T[K]>, Pick<QueryType<T[K]>, P>>
+        ):
+            Query<T, Subset<T,K>> { 
+                this.current.push(record)
+                                     //student
+                this.template.map(element => {
+                    var grade : QueryType<T[K]>[] = element[record]  // Grade[] per student
+                    var queried_array = q(Query<QueryType<T[K]>>(grade)).toArray()
+                    element[record] = queried_array as T[K]
+                });
+                return this   
+        },        
     }
 }
+
 
 export type Comperator<T> = {
     ASC: Fun<T, boolean>

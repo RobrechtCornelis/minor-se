@@ -3,8 +3,8 @@ import { Teacher } from "./models/Teacher";
 import { Course } from "./models/Course";
 import { Grade } from "./models/Grade";
 import { Database } from "./models/Database"
-import { Query } from "./types/Type";
-import { List } from "immutable";
+import { Query, Fun} from "./types/Type.js";
+
 
 const Program = () => {
     const initializeDatabase = function() : Database {
@@ -16,13 +16,13 @@ const Program = () => {
             { studentId: 2, courseId: 1, grade: 7},
             { studentId: 3, courseId: 3, grade: 6},
             { studentId: 2, courseId: 3, grade: 9}
-        ]
+        ]               
 
         let l_students: Student[] = [
             { id: 3, name: "Robrecht", surname: "Cornelis", grades: [l_grades[1], l_grades[2]]},
             { id: 2, name: "Nofit", surname: "Kartoredjo", grades: [l_grades[3], l_grades[4], l_grades[6]]},
             { id: 1, name: "Ramiro", surname: "Delgado", grades: [l_grades[0], l_grades[5]]}
-        ]
+        ]       
 
         let l_courses: Course[] = [
             { id: 1, title: "Analyse", description: "Testen en SQL", teacherId: 3 },
@@ -39,8 +39,9 @@ const Program = () => {
 
     var db: Database = initializeDatabase()
 
-    console.log( Query(db.Students).orderby("surname", "ASC").select("id").select("surname", "grades").toArray()  )
-
+    var students = Query(db.Students).select("name", "name", "id", "id").include("grades", q => q.select("grade").orderby("grade","DESC").select("studentId")).toArray()
+    
+   console.log(students)
 }
  Program()
 
