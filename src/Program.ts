@@ -3,7 +3,7 @@ import { Teacher } from "./models/Teacher";
 import { Course } from "./models/Course";
 import { Grade } from "./models/Grade";
 import { Database } from "./models/Database"
-import { Query} from "./types/Type.js";
+import { Query, Fun} from "./types/Type.js";
 
 
 const Program = () => {
@@ -39,15 +39,9 @@ const Program = () => {
 
     var db: Database = initializeDatabase()
 
-    //console.log( Query(db.Students).orderby("surname", "ASC").select("id").select("surname", "grades").toArray()  )
-    console.log(Query(db.Students).select("name").include("grades", q => q.select("courseId")));
+    var students = Query(db.Students).select("name", "name", "id", "id").include("grades", q => q.select("grade").orderby("grade","DESC").select("studentId")).toArray()
     
-    // console.log(Query(db.Teachers)
-    //     .select("name")
-    //         .include("courses",q=>q.select("description"))
-    //             .orderby("id","ASC"));
-    ///include("grades", q => q.select("studentId")));
-
+   console.log(students)
 }
  Program()
 

@@ -58,11 +58,11 @@ export type Query<T, C> = {   // Bij de functie zijn T en C in het begin hetzelf
     //     entity: k,        
     //     query: (_: Query<T[k],T[k]>) => Query<Omit<QueryType<T[k]>, P>, Pick<QueryType<T[k]>, P>>
     //     ) => Query<T,T>
-    include: <K extends ArrayPropertyNames<T>, P extends keyof QueryType<T[K]>>(
+    include: <K extends ArrayPropertyNames<T> & keyof C, P extends keyof QueryType<T[K]>>(
         record: K,
-        q: (_: Query<QueryType<T[K]>,QueryType<T[K]>>) => Query<QueryType<T[K]>, Pick<QueryType<T[K]>, P>>
+        q: (_: Query<QueryType<T[K]>,QueryType<C[K]>>) => Query<QueryType<T[K]>, Pick<QueryType<T[K]>,P>>
     ) =>
-    Query<T,T>
+    Query<T, Subset<T,K> >
      
 }
 
@@ -75,17 +75,6 @@ export type Filter<T, Condition> = {
 }[keyof T] 
 
 export type QueryType<T> = T extends Array<infer U> ? U : never;
-
-// export const initialTable = <T>(data: Data<T, Unit>): initialTable<T> => ({
-//     data: data,
-
-//     Select: function <K extends keyof T>(this: initialTable<T>, ...properties: K[]): Table<Omit<T, K>, Pick<T, K>> {
-//         return Table(this.data.map(
-//             first => first.map(entry => omitMany(entry, properties)),
-//             second => merge_list_types(second.zip(this.data.First.map(entry => pickMany(entry, properties))))
-//         ))
-//     }
-// })
 
 
 ///////
@@ -136,30 +125,16 @@ export const Query = function<T>(array: T[]) : Query<T, T>{ // new Query<Student
             record: K,
             q: (_: Query<QueryType<T[K]>,QueryType<T[K]>>) => Query<QueryType<T[K]>, Pick<QueryType<T[K]>, P>>
         ):
-            Query<T,T> {        
-                
-                this.template.map(element => console.log(element));
-                return null!
-                //return Query(this.template.map(
-                // first => first.map(entry => omitOne(entry, record)),
-                // second => merge_list_types(second.zip(this.data.First.map(entry =>
-                //     ({ [record]: q(createTable(entry[record] as any)).toList().reverse().toArray() })))) as any
-                
-            //));
-        },
-        // include: function <k extends ArrayPropertyNames<T>,P extends keyof QueryType<T[k]>>(
-        //     entity: k,            
-        //     query: (_: Query<T[k],T[k]>) => (Query<Omit<QueryType<T[k]>, P>, Pick<QueryType<T[k]>, P>>)
-        //     ): Query<T,T>{
-        //         console.log(this.template[0])
-        //         return null!;
-        //     }
-        // include: function<C>(this: Query<T, C>, attribute: ArrayPropertyNames<T>): Query<T, C> {
-        //     // attribute = 'grades'
-        //     // [Grade, Grade, Grade]
-        //     this.content.forEach(student => console.log(student))  // not finish
-        //     return Query(filtered_list, {})
-        // },
+            Query<T, Subset<T,K>> { 
+                this.current.push(record)
+                                     //student
+                this.template.map(element => {
+                    var grade : QueryType<T[K]>[] = element[record]  // Grade[] per student
+                    var queried_array = q(Query<QueryType<T[K]>>(grade)).toArray()
+                    element[record] = queried_array as T[K]
+                });
+                return this   
+        },        
     }
 }
 
