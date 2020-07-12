@@ -31,13 +31,6 @@ export let Fun = function<a,b>(f: (_:a) => b) : Fun<a,b> {
 }
 
 
-// Suggesties van Mohamed (onderstaande 4 regels)
-// container with two generics, one with immutable information and the one for select (subset)
- // Query<T, C>
- // new Query<Student, {}>().select("Name", "Surname") -> Query<Student, {Name:string, Surname:string}>
- // new Query<Student, {}>().select("Name", "Surname").Include(grades, (g:Query<Grade, {}>>) => g.Select("..."))-> Query<Student, {Name:string, Surname:string, Grades:{...}}>
-
-
 // T wordt nooit gemanipuleerd en standaard doorgegeven, zodat alle methods behalve select en include toegang hebben tot alle properties
 // C wordt alleen bij select en include gemanipuleerd en bij andere methoden niet.
 export type Query<T, C> = {   // Bij de functie zijn T en C in het begin hetzelfde <Student,Student>. bij select wordt C een Subset >>>> <Student, Subset<Student,key>
@@ -45,47 +38,36 @@ export type Query<T, C> = {   // Bij de functie zijn T en C in het begin hetzelf
     template: T[]
     // current: current draagt keys van T die worden geselecteerd via de select of include methode
     current: (keyof T)[]
-    // toArray: end-point functie wat de chain beeindigt en de query verandert naar een array om uitgelezen te kunnen worden.
-    toArray: () => C[]
-    // bij select method wordt C gemanipuleerd, en draagt informatie over gefilterde ATTRIBUTEN (Subset) die zijn gefilterd door de select method.
+    // toArray: end-point functie wat de chain beeindigt en een array teruggeeft op basis van de operaties uitgevoerd op een query
+    toArray: () => T[]
+    // bij select methode wordt C van Query<T,C> gemanipuleerd, en draagt informatie over gefilterde ATTRIBUTEN (Subset) die zijn gefilterd door de select method.
     select: <k extends keyof C>(...keys : k[]) =>  Query<T, Subset<C,k>>    
-    // bij where method verandert de inhoud van template T[], maar T zelf wordt niet gemanipuleerd, omdat hier RESULTATEN worden gefilterd, maar de structuur van T blijft hetzelfde.
+    // bij where methode verandert de inhoud van template T[], maar de structuur van T blijft hetzelfde, omdat slechts de RESULTATEN worden gefilterd.
     where: <k extends keyof T>(key: k, predicate: Fun<T[k], boolean>) => Query<T, C> 
-    // bij where method worden C en T niet gemanipuleerd, maar slechts doorgegeven. Where' verandert de template T, omdat hier RESULTATEN worden gefilterd en niet ATTRIBUTEN.
+    // bij orderby methode wordt alleen de inhoud van template, door elkaar geschud, de structuur van T en C blijven hetzelfde.
     orderby: (attribute: NumberStringPropertyNames<T>, order?: keyof Comperator<T>) => Query<T, C>  
-    //include: (attribute: ArrayPropertyNames<T>) => Query<T,C>  
-    // include: <k extends ArrayPropertyNames<T>,P extends keyof QueryType<T[k]>>(
-    //     entity: k,        
-    //     query: (_: Query<T[k],T[k]>) => Query<Omit<QueryType<T[k]>, P>, Pick<QueryType<T[k]>, P>>
-    //     ) => Query<T,T>
-    include: <K extends ArrayPropertyNames<T> & keyof C, P extends keyof QueryType<T[K]>>(
+    // bij include methode worden alleen keys geaccepteerd waarvan de value type in type array is. 
+    // De nested type van de geselecteerde array-attribuut wordt gebruikt om een nieuwe Query te maken, namelijk: Query<NestedType<T[K]>, NestedType<T[K]>>
+    // en de lambda functie 'q' wordt hierop uitgevoerd
+    include: <K extends ArrayPropertyNames<T> & keyof C, P extends keyof NestedType<C[K]>>(
         record: K,
-        q: (_: Query<QueryType<T[K]>,QueryType<C[K]>>) => Query<QueryType<T[K]>, Pick<QueryType<T[K]>,P>>
+        q: (_: Query<NestedType<T[K]>,NestedType<C[K]>>) => Query<NestedType<T[K]>, Pick<NestedType<C[K]>,P>>
     ) =>
-    Query<T, Subset<T,K> >
+    Query<T, Subset<C,K> >
      
 }
 
-//////
 
-export type Filter<T, Condition> = {
-    // Set all types that match the Condition to the value of the field (i.e. name: "name")
-    // Else set the type to never
-    [K in keyof T]: T[K] extends Condition ? K : never 
-}[keyof T] 
-
-export type QueryType<T> = T extends Array<infer U> ? U : never;
+export type NestedType<T> = T extends Array<infer U> ? U : never;
 
 
-///////
-
-// Volgens Mohammed's suggestie: Subset geeft een set terug van alle attributen die je NIET hebt gekozen, dit is het resultaat van Omit
+// Volgens Mohamed's suggestie: Subset geeft een set terug van alle attributen die je NIET hebt gekozen, dit is het resultaat van Omit
 // Zo krijg je bij elke nieuwe select een optie van attributen die je nog niet eerder hebt geselecteerd.
 type ConvertTo<T, v> = Omit<T, {[k in keyof T] : v extends k ? k: never }[keyof T] >  
 type Subset<T, v> = ConvertTo<T, v>   // Zelfde als ConvertTo<T, v>
 
-export const Query = function<T>(array: T[]) : Query<T, T>{ // new Query<Student, Student>().select("Name", "Surname") -> Query<Student, Pick<{Name:string, Surname:string}>>
-    return {   // De Query functie wordt alleen gebruikt voor het initieren van een query, in het begin en niet als return functie bij de methoden. 
+export const Query = function<T>(array: T[]) : Query<T, T>{ 
+    return {   // De Query functie wordt alleen gebruikt voor het initieren van een query, in het begin en niet bij de return statement van de methoden. 
         template: array,
         current: [],
         // Als er geen select is gedaan (current.length == 0), dan is de new_array gelijk aan de template (originele data)
@@ -121,16 +103,16 @@ export const Query = function<T>(array: T[]) : Query<T, T>{ // new Query<Student
                 return {...this, template: sortedQuery}   // Gebruik niet de Query-functie zelf om een nieuwe array terug te geven, gebruik rest parameter in object en pas een property aan
             return {...this, template: sortedQuery.reverse()} 
         },
-        include: function <K extends ArrayPropertyNames<T>, P extends keyof QueryType<T[K]>>(
+        include: function <K extends ArrayPropertyNames<T>, P extends keyof NestedType<T[K]>>(
             record: K,
-            q: (_: Query<QueryType<T[K]>,QueryType<T[K]>>) => Query<QueryType<T[K]>, Pick<QueryType<T[K]>, P>>
+            q: (_: Query<NestedType<T[K]>,NestedType<T[K]>>) => Query<NestedType<T[K]>, Pick<NestedType<T[K]>, P>>
         ):
             Query<T, Subset<T,K>> { 
                 this.current.push(record)
                                      //student
                 this.template.map(element => {
-                    var grade : QueryType<T[K]>[] = element[record]  // Grade[] per student
-                    var queried_array = q(Query<QueryType<T[K]>>(grade)).toArray()
+                    var grade : NestedType<T[K]>[] = element[record]  // Grade[] per student
+                    var queried_array = q(Query<NestedType<T[K]>>(grade)).toArray()
                     element[record] = queried_array as T[K]
                 });
                 return this   
@@ -148,8 +130,6 @@ export const Comperator = <T>(comparer: T): Comperator<T> => ({
     ASC: Fun<T, boolean>(x => x <= comparer),
     DESC: Fun<T, boolean>(x => comparer <= x)
 })
-
-export type stringAndNumber = number|string
 
 type NumberStringPropertyNames<T> = { [K in keyof T]: T[K] extends number |string ? K : never }[keyof T];
 type ArrayPropertyNames<T> = { [K in keyof T]: T[K] extends any[] ? K : never }[keyof T]; // "grades" = K  Grade[]  Student > grades > Grade[]  Student[key] = value type
