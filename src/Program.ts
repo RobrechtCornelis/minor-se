@@ -39,9 +39,16 @@ const Program = () => {
 
     var db: Database = initializeDatabase()
 
-    var students = Query(db.Students).select("name", "name", "id", "id").include("grades", q => q.select("grade").orderby("grade","DESC").select("studentId")).toArray()
+    var students = Query(db.Students)
+        .select("surname", "name")
+        .where("name", Fun(name => name != "Ramiro"))
+        .include("grades", q => q.select("courseId", "grade").where("courseId", Fun(cid => cid == 1)))
+        .toArray()
     
-   console.log(students)
+    students.forEach(element => {
+        console.log(element)
+    })
+   //console.log(students)
 }
  Program()
 

@@ -43,7 +43,7 @@ export type Query<T, C> = {   // Bij de functie zijn T en C in het begin hetzelf
     // bij select methode wordt C van Query<T,C> gemanipuleerd, en draagt informatie over gefilterde ATTRIBUTEN (Subset) die zijn gefilterd door de select method.
     select: <k extends keyof C>(...keys : k[]) =>  Query<T, Subset<C,k>>    
     // bij where methode verandert de inhoud van template T[], maar de structuur van T blijft hetzelfde, omdat slechts de RESULTATEN worden gefilterd.
-    where: <k extends keyof T>(key: k, predicate: Fun<T[k], boolean>) => Query<T, C> 
+    where: <k extends NoneArrayPropertyNames<T>>(key: k, predicate: Fun<T[k], boolean>) => Query<T, C> 
     // bij orderby methode wordt alleen de inhoud van template, door elkaar geschud, de structuur van T en C blijven hetzelfde.
     orderby: (attribute: NumberStringPropertyNames<T>, order?: keyof Comperator<T>) => Query<T, C>  
     // bij include methode worden alleen keys geaccepteerd waarvan de value type in type array is. 
@@ -63,8 +63,7 @@ export type NestedType<T> = T extends Array<infer U> ? U : never;
 
 // Volgens Mohamed's suggestie: Subset geeft een set terug van alle attributen die je NIET hebt gekozen, dit is het resultaat van Omit
 // Zo krijg je bij elke nieuwe select een optie van attributen die je nog niet eerder hebt geselecteerd.
-type ConvertTo<T, v> = Omit<T, {[k in keyof T] : v extends k ? k: never }[keyof T] >  
-type Subset<T, v> = ConvertTo<T, v>   // Zelfde als ConvertTo<T, v>
+type Subset<T, v> = Omit<T, {[k in keyof T] : v extends k ? k: never }[keyof T] >  
 
 export const Query = function<T>(array: T[]) : Query<T, T>{ 
     return {   // De Query functie wordt alleen gebruikt voor het initieren van een query, in het begin en niet bij de return statement van de methoden. 
@@ -76,10 +75,10 @@ export const Query = function<T>(array: T[]) : Query<T, T>{
             let new_array : T[] = []   
             this.current.length == 0 ? new_array = this.template :
             this.template.forEach(element => {  
-                let new_element = {} as T; 
-                this.current.forEach(key => new_element[key] = element[key]  )       
+                let new_element = {} as T;         
+                this.current.forEach(key => new_element[key] = element[key])
                 new_array.push(new_element)
-            })  
+            })
             return new_array   
         },
         // Meerdere selects geven meerdere nested Subset... Na 3 selects krijg je... Subset<Subset<Subset<Student, key>>>,
@@ -88,7 +87,7 @@ export const Query = function<T>(array: T[]) : Query<T, T>{
              keys.forEach(key => this.current.push(key))
             return this
         },
-        where: function <k extends keyof T>(this: Query<T,T>, key: k, predicate: Fun<T[k], boolean>) : Query<T,T> {
+        where: function <k extends NoneArrayPropertyNames<T>>(this: Query<T,T>, key: k, predicate: Fun<T[k], boolean>) : Query<T,T> {
             let filtered_list: T[] = []
             this.template.forEach(element => {
                 if (predicate.f(element[key])) {
@@ -132,4 +131,8 @@ export const Comperator = <T>(comparer: T): Comperator<T> => ({
 })
 
 type NumberStringPropertyNames<T> = { [K in keyof T]: T[K] extends number |string ? K : never }[keyof T];
-type ArrayPropertyNames<T> = { [K in keyof T]: T[K] extends any[] ? K : never }[keyof T]; // "grades" = K  Grade[]  Student > grades > Grade[]  Student[key] = value type
+type ArrayPropertyNames<T> = { [K in keyof T]: T[K] extends any[] ? K : never }[keyof T];
+type NoneArrayPropertyNames<T> = { [K in keyof T]: T[K] extends any[] ? never : K }[keyof T];
+    // "grades" = K  Grade[]  Student > grades > Grade[]  Student[key] = value type
+
+    
