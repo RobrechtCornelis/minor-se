@@ -41,9 +41,9 @@ export type Query<T, C> = {   // Bij de functie zijn T en C in het begin hetzelf
     // toArray: end-point functie wat de chain beeindigt en een array teruggeeft op basis van de operaties uitgevoerd op een query
     toArray: () => T[]
     // bij select methode wordt C van Query<T,C> gemanipuleerd, en draagt informatie over gefilterde ATTRIBUTEN (Subset) die zijn gefilterd door de select method.
-    select: <k extends keyof C>(...keys : k[]) =>  Query<T, Subset<C,k>>    
+    select: <k extends keyof C>(key: k, ...keys : k[]) =>  Query<T, Subset<C,k>>    
     // bij where methode verandert de inhoud van template T[], maar de structuur van T blijft hetzelfde, omdat slechts de RESULTATEN worden gefilterd.
-    where: <k extends NoneArrayPropertyNames<T>>(key: k, predicate: Fun<T[k], boolean>) => Query<T, C> 
+    where: <k extends NoneArrayPropertyNames<T>>(key:k, predicate: Fun<T[k], boolean>) => Query<T, C> 
     // bij orderby methode wordt alleen de inhoud van template, door elkaar geschud, de structuur van T en C blijven hetzelfde.
     orderby: (attribute: NumberStringPropertyNames<T>, order?: keyof Comperator<T>) => Query<T, C>  
     // bij include methode worden alleen keys geaccepteerd waarvan de value type in type array is. 
@@ -83,7 +83,8 @@ export const Query = function<T>(array: T[]) : Query<T, T>{
         },
         // Meerdere selects geven meerdere nested Subset... Na 3 selects krijg je... Subset<Subset<Subset<Student, key>>>,
         // en dus een steeds minder keuzes aan attributen om uit te kiezen
-		select: function<k extends keyof T>(this: Query<T,T>, ...keys: k[] ) : Query<T, Subset<T,k> > {  
+		select: function<k extends keyof T>(this: Query<T,T>,key: k, ...keys: k[]) : Query<T, Subset<T,k> > {  
+             this.current.push(key)
              keys.forEach(key => this.current.push(key))
             return this
         },
